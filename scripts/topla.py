@@ -6,12 +6,18 @@ son içeriklerini çeker, sürelerini bulur ve data/content.json'a yazar.
 
 Kullanım (demli klasöründe):  python3 scripts/topla.py
 Kurulum gerekmez; sadece Python'un kendi kütüphaneleri kullanılır.
+
+YOUTUBE_API_KEY ortam değişkeni tanımlıysa YouTube'un resmî arayüzü kullanılır
+(GitHub sunucularında gereklidir; YouTube oradan gelen akış isteklerini reddediyor).
+Tanımlı değilse kanalların herkese açık akışları okunur.
 """
 import hashlib
 import html
 import json
+import os
 import re
 import sys
+import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
@@ -22,6 +28,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / 'data'
 DURATIONS = DATA / 'durations.json'
+
+YT_KEY = os.environ.get('YOUTUBE_API_KEY', '').strip()
 
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36'
 NS = {
@@ -119,27 +127,73 @@ def text_of(el, path):
 
 # ---------- YouTube ----------
 
+def video_item(src, vid, title, published, description):
+    if not vid or '#shorts' in title.lower():
+        return None
+    if src.get('filter') and src['filter'].lower() not in title.lower():
+        return None
+    return {
+        'id': 'yt-' + vid,
+        'type': 'video',
+        'title': tidy_title(title, src['name']),
+        'published': to_iso(published or datetime.now(timezone.utc)),
+        'url': 'https://www.youtube.com/watch?v=' + vid,
+        'youtubeId': vid,
+        'summary': shorten(clean(description)),
+    }
+
+
+def yt_api(endpoint, **params):
+    params['key'] = YT_KEY
+    return json.loads(fetch('https://www.googleapis.com/youtube/v3/' + endpoint + '?' + urllib.parse.urlencode(params)))
+
+
+def youtube_api(src):
+    # Bir kanalın tüm yüklemeleri "UU…" ile başlayan gizli bir oynatma listesinde durur.
+    playlist = src.get('playlist') or 'UU' + src['channel'][2:]
+    data = yt_api('playlistItems', part='snippet,contentDetails', playlistId=playlist, maxResults=15)
+    items = []
+    for entry in data.get('items', []):
+        sn, cd = entry['snippet'], entry['contentDetails']
+        if sn.get('title') in ('Private video', 'Deleted video'):
+            continue
+        published = parse_date(cd.get('videoPublishedAt') or sn.get('publishedAt'))
+        item = video_item(src, cd.get('videoId'), sn.get('title', ''), published, sn.get('description', ''))
+        if item:
+            items.append(item)
+    return items
+
+
+def iso_seconds(value):
+    m = re.fullmatch(r'P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?', value or '')
+    if not m:
+        return None
+    d, h, mi, s = (int(x or 0) for x in m.groups())
+    return ((d * 24 + h) * 60 + mi) * 60 + s
+
+
+def api_durations(vids):
+    out = {}
+    for k in range(0, len(vids), 50):
+        data = yt_api('videos', part='contentDetails', id=','.join(vids[k:k + 50]))
+        for v in data.get('items', []):
+            sec = iso_seconds(v['contentDetails'].get('duration'))
+            if sec is not None:
+                out[v['id']] = sec
+    return out
+
+
 def youtube(src):
+    if YT_KEY:
+        return youtube_api(src)
     key = 'playlist_id=' + src['playlist'] if src.get('playlist') else 'channel_id=' + src['channel']
     root = ET.fromstring(fetch('https://www.youtube.com/feeds/videos.xml?' + key))
     items = []
     for e in root.findall('atom:entry', NS):
-        vid = text_of(e, 'yt:videoId')
-        title = text_of(e, 'atom:title')
-        if not vid or '#shorts' in title.lower():
-            continue
-        if src.get('filter') and src['filter'].lower() not in title.lower():
-            continue
-        published = parse_date(text_of(e, 'atom:published'))
-        items.append({
-            'id': 'yt-' + vid,
-            'type': 'video',
-            'title': tidy_title(title, src['name']),
-            'published': to_iso(published or datetime.now(timezone.utc)),
-            'url': 'https://www.youtube.com/watch?v=' + vid,
-            'youtubeId': vid,
-            'summary': shorten(clean(text_of(e, 'media:group/media:description'))),
-        })
+        item = video_item(src, text_of(e, 'yt:videoId'), text_of(e, 'atom:title'),
+                          parse_date(text_of(e, 'atom:published')), text_of(e, 'media:group/media:description'))
+        if item:
+            items.append(item)
     return items
 
 
@@ -274,15 +328,29 @@ def main():
         wanted += [i['youtubeId'] for i in newest[: limit * 2] if i['youtubeId'] not in durations]
     if wanted:
         print(f'{len(wanted)} videonun süresi bulunuyor…')
-        with ThreadPoolExecutor(max_workers=4) as pool:
-            for vid, sec in zip(wanted, pool.map(video_seconds, wanted)):
-                if sec is not None:
-                    durations[vid] = sec
+        if YT_KEY:
+            durations.update(api_durations(wanted))
+        else:
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                for vid, sec in zip(wanted, pool.map(video_seconds, wanted)):
+                    if sec is not None:
+                        durations[vid] = sec
+
+    # Okunamayan bir kaynağın önceki içerikleri silinmesin diye eski liste saklanır.
+    try:
+        previous = json.loads((DATA / 'content.json').read_text(encoding='utf-8')).get('items', [])
+    except (FileNotFoundError, json.JSONDecodeError):
+        previous = []
 
     all_items, seen, report = [], set(), []
     for src, items, error in results:
         if error:
-            report.append(f'  ✗ {src["name"]}: {error}')
+            kept = [i for i in previous if i.get('source') == src['name'] and i['id'] not in seen]
+            for i in kept:
+                i.pop('featured', None)
+                seen.add(i['id'])
+            all_items += kept
+            report.append(f'  ✗ {src["name"]}: {error} (önceki {len(kept)} içerik korundu)')
             continue
         kept = []
         for item in sorted(items, key=lambda i: i['published'], reverse=True):
