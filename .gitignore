@@ -1,0 +1,6 @@
+# Kişisel ve yerel dosyalar yayına gitmez
+img/
+.claude/
+.DS_Store
+__pycache__/
+*.pyc

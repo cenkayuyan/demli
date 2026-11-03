@@ -1,0 +1,51 @@
+# Demli: içerikleri topla ve siteyi yayınla.
+# - Her 3 saatte bir kaynakları okur, yeni içerik varsa kaydeder ve siteyi yeniler.
+# - Koda bir değişiklik gönderildiğinde de siteyi yeniden yayınlar.
+# - Actions sekmesinden "Run workflow" ile elle de çalıştırılabilir.
+name: Topla ve yayınla
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  yayinla:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: İçerikleri topla
+        if: github.event_name != 'push'
+        run: python3 scripts/topla.py
+
+      - name: Yeni içerikleri kaydet
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "demli-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/content.json data/durations.json
+          git diff --cached --quiet || (git commit -m "İçerikler güncellendi" && git push)
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

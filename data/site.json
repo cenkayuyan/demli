@@ -1,0 +1,18 @@
+{
+  "topics": [
+    { "id": "cin", "name": "Çin doktorasına hazırlık", "short": "Çin hazırlığı", "desc": "Mandarin, başvuru süreci ve Çin'de akademik hayat.", "bg": "#6E1A12", "fg": "#F0B860" },
+    { "id": "tasavvuf", "name": "Tasavvuf", "short": "Tasavvuf", "desc": "Sohbetler, Mesnevî okumaları ve tekkeler.", "bg": "#1E2934", "fg": "#E8D6A8" },
+    { "id": "tarih", "name": "Tarih", "short": "Tarih", "desc": "İmparatorluklar, şehirler ve unutulan hikâyeler.", "bg": "#2E1F17", "fg": "#E3A24A" },
+    { "id": "seyahat", "name": "Seyahat", "short": "Seyahat", "desc": "Gezi videoları, rotalar ve pratik notlar.", "bg": "#22402E", "fg": "#E9C98F" },
+    { "id": "kultur", "name": "Dünya kültürleri", "short": "Kültürler", "desc": "Gelenekler, fikirler ve insanlar.", "bg": "#3D2B12", "fg": "#F2CF8A" },
+    { "id": "belgesel", "name": "Belgeseller", "short": "Belgesel", "desc": "Uzun soluklu, derinlikli anlatılar.", "bg": "#2B2F22", "fg": "#D9C27A" },
+    { "id": "gundem", "name": "Ekonomi ve siyaset", "short": "Gündem", "desc": "Haftanın gündemi, analizler ve sohbetler.", "bg": "#3A2A24", "fg": "#F2E3CF" },
+    { "id": "film", "name": "Yeni filmler", "short": "Filmler", "desc": "Vizyondakiler, fragmanlar ve eleştiriler.", "bg": "#4A1E2C", "fg": "#F4C27A" }
+  ],
+  "people": [
+    { "id": "nisanli", "name": "Nişanlım" },
+    { "id": "zeynep", "name": "Zeynep" },
+    { "id": "mert", "name": "Mert" },
+    { "id": "selin", "name": "Selin" }
+  ]
+}
