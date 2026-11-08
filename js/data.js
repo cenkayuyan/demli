@@ -11,14 +11,17 @@ export async function loadContent() {
 
 export const isSample = () => Boolean(base.sample);
 export const topics = () => base.topics;
-export const people = () => base.people;
+// Giriş yapılmışsa kişiler gerçek hesaplardır; yoksa site.json'daki örnek isimler.
+export const people = () => store.state.people || base.people;
 export const topic = (id) => base.topics.find((t) => t.id === id);
-export const person = (id) => base.people.find((p) => p.id === id);
+export const person = (id) => people().find((p) => p.id === id);
 
 export function items() {
-  return [...store.state.added, ...base.items];
+  const extra = store.state.user ? store.state.links : store.state.added;
+  return [...extra, ...base.items];
 }
-export const item = (id) => items().find((i) => i.id === id);
+// Akıştan düşmüş ama listede ya da öneride duran içerikler kopyalarından bulunur.
+export const item = (id) => items().find((i) => i.id === id) || store.state.snap[id] || null;
 
 export const byNewest = (a, b) => (a.published < b.published ? 1 : a.published > b.published ? -1 : 0);
 
@@ -58,7 +61,15 @@ export function mixTopics(list) {
   return out;
 }
 
-export const fromFriends = () => items().filter((i) => i.by && i.by !== 'sen').sort(byNewest);
+// Arkadaşlardan: sana gönderilen öneriler ve başkalarının eklediği linkler.
+export function fromFriends() {
+  const seen = new Set();
+  const recs = store.state.incoming.map((r) => ({ ...r.item, by: r.from, recNote: r.note, recAt: r.at }));
+  const links = items().filter((i) => i.by && i.by !== 'sen').map((i) => ({ ...i, recAt: i.addedAt || i.published }));
+  return [...recs, ...links]
+    .sort((a, b) => (a.recAt < b.recAt ? 1 : -1))
+    .filter((i) => !seen.has(i.id) && seen.add(i.id));
+}
 
 // Haftanın başlangıcı: pazartesi 00:00.
 export function weekStart(now = new Date()) {

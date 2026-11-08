@@ -1,6 +1,12 @@
 // Sayfalar. Her fonksiyon <main> içine konacak HTML'i döndürür.
 import * as D from './data.js';
+import * as cloud from './cloud.js';
 import { store } from './store.js';
+
+const friendsEmpty = () =>
+  cloud.enabled && !store.state.user
+    ? 'Giriş yapınca nişanlının ve arkadaşlarının önerileri burada görünür.'
+    : 'Henüz kimse bir şey önermedi.';
 import { esc, icon, card, row, poster, imgTag, imageOf, fmtMinutes, fmtDuration, fmtDate, metaLine, TYPE_LABEL } from './ui.js';
 
 function timeChips() {
@@ -91,7 +97,7 @@ export function home() {
     ${hero(featured)}
     ${row({ title: 'Bu hafta yeni', sub: 'Tüm konulardan, son 7 gün', list: freshShown, empty: emptyMsg })}
     ${row({ title: 'Arkadaşlardan', sub: 'Nişanlın ve arkadaşlarının önerdikleri', href: '#/arkadaslar', list: friends,
-      empty: D.fromFriends().length ? emptyMsg : 'Henüz kimse bir şey önermedi. Site yayına alınınca arkadaşlarının önerileri burada görünecek.' })}
+      empty: D.fromFriends().length ? emptyMsg : friendsEmpty() })}
     ${topicRows.map(({ t, list }) => row({ title: t.name, sub: t.desc, href: '#/konu/' + t.id, list, empty: emptyMsg })).join('')}
     <section class="row wrap" aria-label="Bu haftan">${summaryBlock(D.weekStats(), { compact: true })}</section>
   `;
@@ -188,32 +194,55 @@ export function savedPage() {
     </div>`;
 }
 
+function recList(entries) {
+  return `<ul class="list">${entries.map((e) => `<li class="list__item">
+      ${poster(e.item)}
+      <div class="list__body">
+        <a class="list__title" href="#/icerik/${esc(e.item.id)}">${esc(e.item.title)}</a>
+        <span class="list__meta">${esc(e.who)} · ${fmtDate(e.at)}</span>
+        ${e.note ? `<span class="list__note">"${esc(e.note)}"</span>` : ''}
+      </div>
+    </li>`).join('')}</ul>`;
+}
+
 export function friendsPage() {
-  const incoming = D.fromFriends();
-  const sent = store.state.sent.map((s) => ({ ...s, item: D.item(s.itemId), person: D.person(s.to) })).filter((s) => s.item);
-  return `
+  const s = store.state;
+  const head = `
     <section class="page-head wrap">
       <span class="page-head__eyebrow">Birlikte</span>
       <h1 class="page-head__title">Arkadaşlar</h1>
       <p class="page-head__text">Nişanlının ve arkadaşlarının önerdikleri, senin onlara gönderdiklerin.</p>
-      <div class="people" style="padding-top:8px">
+      ${D.people().length ? `<div class="people" style="padding-top:8px">
         ${D.people().map((p) => `<span class="person"><span class="avatar" aria-hidden="true">${esc(p.name.charAt(0))}</span>${esc(p.name)}</span>`).join('')}
-      </div>
+      </div>` : ''}
+    </section>`;
+
+  if (cloud.enabled && !s.user) {
+    return head + `<div class="wrap"><div class="empty">
+      <p><strong>Önerileri görmek ve göndermek için giriş yap.</strong> Nişanlının ve arkadaşlarının sana gönderdikleri burada toplanır; senin önerdiklerin de onların sayfasına düşer.</p>
+      <button type="button" class="btn btn--primary" data-action="login">Giriş yap ya da hesap aç</button>
+    </div></div>`;
+  }
+
+  const name = (id) => (D.person(id) || { name: 'Biri' }).name;
+  const incoming = s.user
+    ? s.incoming.map((r) => ({ item: D.item(r.item.id) || r.item, who: name(r.from) + ' önerdi', note: r.note, at: r.at }))
+    : [];
+  const sent = s.sent.map((x) => ({ ...x, item: D.item(x.itemId) })).filter((x) => x.item)
+    .map((x) => ({ item: x.item, who: name(x.to) + ' için', note: x.note, at: x.at }));
+
+  return `${head}
+    ${s.user && !D.people().length ? `<div class="wrap"><div class="empty"><p><strong>Henüz başka kimse hesap açmadı.</strong> Nişanlına ve arkadaşlarına sitenin linkini ve davet kodunu gönder; hesap açtıklarında burada görünürler.</p></div></div>` : ''}
+    <section class="row wrap" aria-label="Sana önerilenler">
+      <h2 class="section-title">Sana önerilenler</h2>
+      ${incoming.length ? recList(incoming) : `<div class="empty"><p>${esc(friendsEmpty())}</p></div>`}
     </section>
-    ${row({ title: 'Sana önerilenler', list: incoming })}
     <section class="row wrap" aria-label="Senin önerdiklerin">
       <h2 class="section-title">Senin önerdiklerin</h2>
       ${sent.length
-        ? `<ul class="list">${sent.map((s) => `<li class="list__item">
-            ${poster(s.item)}
-            <div class="list__body">
-              <a class="list__title" href="#/icerik/${esc(s.item.id)}">${esc(s.item.title)}</a>
-              <span class="list__meta">${esc((s.person || { name: s.to }).name)} için · ${fmtDate(s.at)}</span>
-              ${s.note ? `<span class="list__note">"${esc(s.note)}"</span>` : ''}
-            </div>
-          </li>`).join('')}</ul>`
+        ? recList(sent)
         : `<div class="empty"><p>Henüz kimseye bir şey önermedin. Beğendiğin bir içeriğin sayfasında "Birine öner"e bas.</p></div>`}
-      <p class="hint" style="padding-top:14px">Şimdilik öneriler yalnızca bu tarayıcıda tutuluyor. Site yayına alındığında arkadaşlarına gerçekten ulaşacak.</p>
+      ${s.user ? '' : '<p class="hint" style="padding-top:14px">Hesapsız kullanımda öneriler yalnızca bu tarayıcıda tutulur.</p>'}
     </section>`;
 }
 

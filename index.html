@@ -28,7 +28,7 @@
         <a href="#/" data-nav="home">Keşfet</a>
         <a href="#/konu/cin" data-nav="konular">Konular</a>
         <a href="#/sonra" data-nav="sonra">Sonra izle</a>
-        <a href="#/arkadaslar" data-nav="arkadaslar">Arkadaşlar</a>
+        <a href="#/arkadaslar" data-nav="arkadaslar">Arkadaşlar <span id="rec-badge" class="nav__badge" hidden></span></a>
         <a href="#/haftam" data-nav="haftam">Haftam</a>
       </nav>
     </div>
@@ -37,6 +37,7 @@
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
         Link ekle
       </button>
+      <button type="button" id="account-btn" class="btn btn--quiet" hidden>Giriş yap</button>
     </div>
   </header>
 
@@ -105,6 +106,49 @@
       <div class="modal__actions">
         <button type="button" class="btn" data-close>Vazgeç</button>
         <button type="submit" class="btn btn--primary">Öner</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="auth-dialog" class="modal" aria-labelledby="auth-title">
+    <form novalidate>
+      <h2 id="auth-title">Giriş yap</h2>
+      <p class="modal__lead" id="auth-lead">Önerilerin, Sonra izle listen ve haftan tüm cihazlarında aynı olsun.</p>
+      <div class="field" id="auth-name-field" hidden>
+        <label for="auth-name">Adın</label>
+        <input id="auth-name" class="input" type="text" autocomplete="name" placeholder="Arkadaşların seni bu adla görür">
+      </div>
+      <div class="field">
+        <label for="auth-email">E-posta</label>
+        <input id="auth-email" class="input" type="email" inputmode="email" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="auth-password">Şifre</label>
+        <input id="auth-password" class="input" type="password" autocomplete="current-password">
+        <span class="field__hint" id="auth-password-hint" hidden>En az 6 karakter.</span>
+      </div>
+      <div class="field" id="auth-code-field" hidden>
+        <label for="auth-code">Davet kodu</label>
+        <input id="auth-code" class="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <span class="field__hint">Kodu seni Demli'ye davet eden kişiden al.</span>
+      </div>
+      <span id="auth-error" class="field__error" role="alert" hidden></span>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--link" id="auth-switch">Hesabın yok mu? Hesap aç</button>
+        <button type="button" class="btn" data-close>Vazgeç</button>
+        <button type="submit" class="btn btn--primary" id="auth-submit">Giriş yap</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="account-dialog" class="modal" aria-labelledby="account-title">
+    <form method="dialog">
+      <h2 id="account-title">Hesabın</h2>
+      <p class="modal__lead" id="account-info"></p>
+      <p class="hint">Sonra izle listen, bitirdiklerin ve önerilerin bu hesapta saklanıyor. Başka bir cihazdan aynı e-posta ve şifreyle girersen hepsi orada da olur.</p>
+      <div class="modal__actions">
+        <button type="button" class="btn" id="signout-btn">Çıkış yap</button>
+        <button type="button" class="btn btn--primary" data-close>Kapat</button>
       </div>
     </form>
   </dialog>
