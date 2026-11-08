@@ -103,6 +103,33 @@ export function home() {
   `;
 }
 
+export function topicsPage() {
+  const labels = { video: 'video', podcast: 'podcast', yazi: 'yazı', haber: 'haber' };
+  return `
+    <section class="page-head wrap">
+      <span class="page-head__eyebrow">Keşfet</span>
+      <h1 class="page-head__title">Konular</h1>
+      <p class="page-head__text">Her konuda videolar, podcast'ler, yazılar ve haberler bir arada.</p>
+    </section>
+    <div class="wrap">
+      <div class="topics">
+        ${D.topics().map((t) => {
+          const list = D.inTopic(t.id);
+          const counts = Object.entries(labels)
+            .map(([k, label]) => [list.filter((i) => i.type === k).length, label])
+            .filter(([n]) => n)
+            .map(([n, label]) => `${n} ${label}`)
+            .join(' · ');
+          return `<a class="topic-card" href="#/konu/${esc(t.id)}" style="--p-bg:${t.bg};--p-fg:${t.fg}">
+            <span class="topic-card__name">${esc(t.name)}</span>
+            <span class="topic-card__desc">${esc(t.desc)}</span>
+            <span class="topic-card__count">${counts || 'Henüz içerik yok'}</span>
+          </a>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
 // Konu sayfasındaki tür filtresi sayfa değişince sıfırlanır.
 let typeFilter = 'all';
 let lastTopic = null;

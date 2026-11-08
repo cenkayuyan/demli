@@ -18,6 +18,7 @@ function route() {
   const [page = '', id = ''] = parts;
   switch (page) {
     case '': return { key: 'home', html: V.home, nav: 'home' };
+    case 'konular': return { key: 'konular', html: V.topicsPage, nav: 'konular' };
     case 'konu': return { key: 'konu/' + id, html: () => V.topicPage(id), nav: 'konular' };
     case 'icerik': return { key: 'icerik/' + id, html: () => V.itemPage(id), nav: '' };
     case 'sonra': return { key: 'sonra', html: V.savedPage, nav: 'sonra' };

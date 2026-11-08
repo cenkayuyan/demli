@@ -192,6 +192,17 @@ h1, h2, h3 { text-wrap: balance; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 28px 16px; }
 
+/* ---------- Konular ---------- */
+.topics { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.topic-card {
+  display: flex; flex-direction: column; gap: 8px; min-height: 170px; padding: 22px; border-radius: var(--radius-lg);
+  background: var(--p-bg); color: var(--fg); text-decoration: none; transition: transform 0.15s ease;
+}
+.topic-card:hover { color: var(--fg); transform: translateY(-2px); }
+.topic-card__name { font-family: var(--display); font-size: 28px; line-height: 1.1; color: var(--p-fg); }
+.topic-card__desc { font-size: 14px; color: var(--fg-2); flex: 1; }
+.topic-card__count { font-size: 13px; font-weight: 600; color: var(--fg); font-variant-numeric: tabular-nums; }
+
 /* ---------- Sayfa başlığı ---------- */
 .page-head { padding-block: 40px 24px; display: flex; flex-direction: column; gap: 10px; }
 .page-head__eyebrow { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; color: var(--muted); }
