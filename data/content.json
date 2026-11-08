@@ -1,6 +1,6 @@
 {
  "sample": false,
- "generated": "2026-11-08T20:22:25Z",
+ "generated": "2026-11-08T20:24:44Z",
  "topics": [
   {
    "id": "cin",
@@ -90,7 +90,7 @@
    "id": "r-5fead23ca292",
    "type": "haber",
    "title": "China’s Sea Goddess Has a New Job: AI Weather Forecasting",
-   "published": "2026-11-08T20:22:21Z",
+   "published": "2026-11-08T20:24:41Z",
    "url": "https://www.sixthtone.com/news/1019225/China’s Sea Goddess Has a New Job: AI Weather Forecasting",
    "summary": "The MAZU system combines AI models with satellite data to forecast hazards, though experts say the technology still struggles with unprecedented extremes.",
    "minutes": 3,
@@ -105,7 +105,7 @@
    "id": "r-525b3cafea87",
    "type": "haber",
    "title": "China’s Traditional Colors Are Trending. But What Are We Missing?",
-   "published": "2026-11-08T20:22:21Z",
+   "published": "2026-11-08T20:24:41Z",
    "url": "https://www.sixthtone.com/news/1019218/China’s Traditional Colors Are Trending. But What Are We Missing?",
    "summary": "Social media has brought renewed attention to China’s historical colors, but the neatly arranged color charts tell only a fraction of the story.",
    "minutes": 3,
@@ -120,7 +120,7 @@
    "id": "r-9b421c662085",
    "type": "haber",
    "title": "China Vows to Share Its Market With the World at 9th Annual CIIE",
-   "published": "2026-11-08T20:22:21Z",
+   "published": "2026-11-08T20:24:41Z",
    "url": "https://www.sixthtone.com/news/1019224/China Vows to Share Its Market With the World at 9th Annual CIIE",
    "summary": "This year’s China International Import Expo in Shanghai is the largest edition since its inception in 2018, with 4,142 overseas companies participating.",
    "minutes": 3,
@@ -135,7 +135,7 @@
    "id": "r-13b122a883a2",
    "type": "haber",
    "title": "Double 11 Looming, Chinese Shoppers Ask Strangers to Vet Their Carts",
-   "published": "2026-11-08T20:22:21Z",
+   "published": "2026-11-08T20:24:41Z",
    "url": "https://www.sixthtone.com/news/1019220/Double 11 Looming, Chinese Shoppers Ask Strangers to Vet Their Carts",
    "summary": "The programs ask users to list items they want, then share a link with friends, family, or total strangers, who vote to approve or deny purchases.",
    "minutes": 3,
@@ -159,21 +159,6 @@
    "source": "TRT World",
    "lang": "en",
    "mark": "TW",
-   "fs": 44
-  },
-  {
-   "id": "r-6479c4d36847",
-   "type": "haber",
-   "title": "Stephen King Klasiği Geri Dönüyor: \"1408\"in Devam Filmi İçin Dev İsimler Kadroda!",
-   "published": "2026-11-08T20:07:41Z",
-   "url": "https://www.beyazperde.com/haberler/filmler/haberler-1000231301/",
-   "summary": "Stephen King ’in 1999 tarihli aynı adlı kısa öyküsünden sinemaya uyarlanan ve 2007 yılında vizyona girdiğinde 25 milyon dolarlık mütevazı bütçesine karşılık dünya genelinde 132 milyon dolar gişe hasılatı elde ederek kült mertebesine ulaşan 1408 , yıllar sonra devam filmiyle…",
-   "minutes": 3,
-   "image": "https://tr.web.img2.acsta.net/img/0e/fb/0efb77888228e3c643f249ec0df90a6b.png",
-   "topic": "film",
-   "source": "Beyazperde",
-   "lang": "tr",
-   "mark": "B",
    "fs": 44
   },
   {
@@ -1207,6 +1192,21 @@
    "source": "Medyascope",
    "lang": "tr",
    "mark": "M",
+   "fs": 44
+  },
+  {
+   "id": "r-36cd2c93963a",
+   "type": "haber",
+   "title": "Tarihin Sıfır Noktasında Sinema Rüzgârı: 5. Göbeklitepe Uluslararası Film Festivali Başladı!",
+   "published": "2026-11-07T14:16:07Z",
+   "url": "https://www.beyazperde.com/haberler/filmler/haberler-1000231241/",
+   "summary": "İnsanlık tarihinin başlangıç noktası olarak kabul edilen kadim kent Şanlıurfa, sinemanın birleştirici gücüyle beşinci kez dünya kültürlerini ağırlıyor. Göbeklitepe Kültür Sanat Derneği organizasyonunda ve Şanlıurfa Büyükşehir Belediyesi’nin ana sponsorluğunda hayata ge… Orijinal…",
+   "minutes": 3,
+   "image": "https://tr.web.img4.acsta.net/img/ce/35/ce358853aa9af399eb275e1cb29dab7d.jpg",
+   "topic": "film",
+   "source": "Beyazperde",
+   "lang": "tr",
+   "mark": "B",
    "fs": 44
   },
   {
