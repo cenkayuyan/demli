@@ -266,14 +266,22 @@ def rss(src):
             published = parse_date(text_of(it, 'pubDate') or text_of(it, 'dc:date'))
             image = item_image(it)
             enc = it.find('enclosure')
-            audio = enc.get('url') if enc is not None and (enc.get('type') or '').startswith('audio') else None
-            seconds = parse_duration(text_of(it, 'itunes:duration'))
+            enc_type = (enc.get('type') or '') if enc is not None else ''
+            audio = enc.get('url') if enc_type.startswith('audio') else None
+            video_file = enc.get('url') if enc_type.startswith('video') else None
+            media = it.find('media:content', NS)
+            seconds = parse_duration(text_of(it, 'itunes:duration')) or (
+                parse_duration(media.get('duration')) if media is not None else None)
         if not title:
             continue
+        if atom:
+            video_file = None
 
         text = clean(body)
-        if kind == 'podcast':
-            minutes = round(seconds / 60) if seconds else 30
+        approx = False
+        if kind in ('podcast', 'video'):
+            approx = not seconds
+            minutes = round(seconds / 60) if seconds else (30 if kind == 'podcast' else 10)
         else:
             words = len(text.split())
             minutes = max(DEFAULT_READ[kind], round(words / READ_WPM)) if words > 150 else DEFAULT_READ[kind]
@@ -283,13 +291,21 @@ def rss(src):
             'id': 'r-' + uid,
             'type': kind,
             'title': title,
-            'published': to_iso(published or datetime.now(timezone.utc)),
+            # Tarihi olmayan içeriklere ilk görüldükleri gün verilir (ana akışta).
+            'published': to_iso(published) if published else None,
             'url': link,
             'summary': shorten(text),
             'minutes': max(1, minutes),
         }
+        if approx:
+            item['approx'] = True
         if audio:
             item['audioUrl'] = audio
+        if video_file:
+            item['videoUrl'] = video_file
+        vimeo = re.search(r'vimeo\.com/(?:channels/[^/]+/)?(\d+)', link or '')
+        if kind == 'video' and vimeo:
+            item['vimeoId'] = vimeo.group(1)
         if image or (kind == 'podcast' and channel_image):
             item['image'] = image or channel_image
         items.append(item)
@@ -309,12 +325,28 @@ def collect(src):
 def main():
     config = json.loads((DATA / 'sources.json').read_text(encoding='utf-8'))
     site = json.loads((DATA / 'site.json').read_text(encoding='utf-8'))
-    default_limit = config.get('defaults', {}).get('limit', 4)
+    defaults = config.get('defaults', {})
+    default_limit = defaults.get('limit', 4)
     sources = config['sources']
+    for src in sources:
+        if 'limit' not in src:
+            src['limit'] = defaults.get('youtube', 3) if src['kind'] == 'youtube' else default_limit
 
     print(f'{len(sources)} kaynak okunuyor…')
     with ThreadPoolExecutor(max_workers=10) as pool:
         results = list(pool.map(collect, sources))
+
+    # Okunamayan bir kaynağın önceki içerikleri silinmesin diye eski liste saklanır.
+    try:
+        previous = json.loads((DATA / 'content.json').read_text(encoding='utf-8')).get('items', [])
+    except (FileNotFoundError, json.JSONDecodeError):
+        previous = []
+    first_seen = {i['id']: i['published'] for i in previous}
+    now_iso = to_iso(datetime.now(timezone.utc))
+    for _, items, _ in results:
+        for i in items:
+            if not i['published']:
+                i['published'] = first_seen.get(i['id'], now_iso)
 
     # YouTube süreleri: önceden bulunanlar data/durations.json'da saklanır.
     try:
@@ -323,7 +355,7 @@ def main():
         durations = {}
     wanted = []
     for src, items, _ in results:
-        limit = src.get('limit', default_limit)
+        limit = src['limit']
         newest = sorted((i for i in items if i.get('youtubeId')), key=lambda i: i['published'], reverse=True)
         wanted += [i['youtubeId'] for i in newest[: limit * 2] if i['youtubeId'] not in durations]
     if wanted:
@@ -335,12 +367,6 @@ def main():
                 for vid, sec in zip(wanted, pool.map(video_seconds, wanted)):
                     if sec is not None:
                         durations[vid] = sec
-
-    # Okunamayan bir kaynağın önceki içerikleri silinmesin diye eski liste saklanır.
-    try:
-        previous = json.loads((DATA / 'content.json').read_text(encoding='utf-8')).get('items', [])
-    except (FileNotFoundError, json.JSONDecodeError):
-        previous = []
 
     all_items, seen, report = [], set(), []
     for src, items, error in results:
@@ -368,7 +394,7 @@ def main():
                          'mark': mark_for(src), 'fs': 44})
             kept.append(item)
             seen.add(item['id'])
-            if len(kept) >= src.get('limit', default_limit):
+            if len(kept) >= src['limit']:
                 break
         all_items += kept
         report.append(f'  ✓ {src["name"]}: {len(kept)}')

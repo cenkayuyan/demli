@@ -81,7 +81,7 @@ export function home() {
   const featured = D.items().find((i) => i.featured);
   const freshShown = D.mixTopics(D.fitsTime(fresh, time));
   const friends = D.fitsTime(D.fromFriends(), time);
-  const topicRows = D.topics().map((t) => ({ t, list: D.fitsTime(D.inTopic(t.id), time) }));
+  const topicRows = D.topics().map((t) => ({ t, list: D.mixBy(D.fitsTime(D.inTopic(t.id), time), 'type') }));
   const shownCount = new Set([...freshShown, ...friends, ...topicRows.flatMap((r) => r.list)].map((i) => i.id)).size;
   const emptyMsg = 'Bu süreye uyan içerik yok.';
 
@@ -143,7 +143,7 @@ export function topicPage(id) {
   if (lastTopic !== id) typeFilter = 'all';
   lastTopic = id;
   let list = D.fitsTime(D.inTopic(id), store.state.time);
-  if (typeFilter !== 'all') list = list.filter((i) => i.type === typeFilter);
+  list = typeFilter === 'all' ? D.mixBy(list, 'type') : list.filter((i) => i.type === typeFilter);
   const types = [['all', 'Tümü'], ...Object.entries(TYPE_LABEL)];
   return `
     <section class="page-head wrap">
@@ -167,6 +167,12 @@ export function topicPage(id) {
 function media(i) {
   if (i.youtubeId) {
     return `<div class="player"><iframe src="https://www.youtube-nocookie.com/embed/${esc(i.youtubeId)}?rel=0" title="${esc(i.title)}" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`;
+  }
+  if (i.vimeoId) {
+    return `<div class="player"><iframe src="https://player.vimeo.com/video/${esc(i.vimeoId)}?dnt=1" title="${esc(i.title)}" allow="fullscreen; picture-in-picture" allowfullscreen></iframe></div>`;
+  }
+  if (i.videoUrl) {
+    return `<div class="player"><video controls preload="metadata" playsinline src="${esc(i.videoUrl)}"${i.image ? ` poster="${esc(i.image)}"` : ''}></video></div>`;
   }
   if (i.audioUrl) {
     return `${poster(i, { big: true })}<audio class="audio" controls preload="none" src="${esc(i.audioUrl)}"></audio>`;

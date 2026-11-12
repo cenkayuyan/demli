@@ -48,12 +48,13 @@ export function newThisWeek(now = new Date()) {
   return items().filter((i) => i.published >= iso).sort(byNewest);
 }
 
-// Raf tek bir konunun haberleriyle dolmasın: konular sırayla birer birer dizilir.
-export function mixTopics(list) {
+// Raf tek bir konu ya da tek bir türle dolmasın: gruplar sırayla birer birer dizilir.
+export const mixTopics = (list) => mixBy(list, 'topic');
+export function mixBy(list, key) {
   const groups = new Map();
   list.forEach((i) => {
-    if (!groups.has(i.topic)) groups.set(i.topic, []);
-    groups.get(i.topic).push(i);
+    if (!groups.has(i[key])) groups.set(i[key], []);
+    groups.get(i[key]).push(i);
   });
   const queues = [...groups.values()];
   const out = [];

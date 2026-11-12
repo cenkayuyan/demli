@@ -73,6 +73,7 @@ export function metaLine(i, { showTopic = true } = {}) {
   if (showTopic) parts.push(esc((topic(i.topic) || {}).short || ''));
   else parts.push(fmtDate(i.published));
   if (i.lang === 'en') parts.push('EN');
+  else if (i.lang === 'zh') parts.push('Çince');
   return parts.filter(Boolean).join(' · ');
 }
 

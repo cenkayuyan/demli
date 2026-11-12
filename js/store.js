@@ -17,7 +17,7 @@ function load() {
 
 // Akıştan düşen içerikler kaybolmasın diye kaydedilen her içeriğin bir kopyası tutulur.
 const FIELDS = ['id', 'topic', 'tags', 'type', 'title', 'minutes', 'approx', 'published', 'url', 'youtubeId',
-  'audioUrl', 'image', 'summary', 'source', 'lang', 'mark', 'fs'];
+  'vimeoId', 'videoUrl', 'audioUrl', 'image', 'summary', 'source', 'lang', 'mark', 'fs'];
 export function slim(item) {
   const out = {};
   FIELDS.forEach((k) => item[k] !== undefined && (out[k] = item[k]));
